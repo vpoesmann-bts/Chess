@@ -53,6 +53,48 @@ function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
   }
 }
 
+function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): void {
+  for (let x: number = 0 ; x < GRID_SIDE ; x++) {
+    for (let y: number = 0 ; y < GRID_SIDE ; y++) {
+      grid[y][x] = 0;
+      let cell = document.getElementById(convertCoordsToId([x, y]));
+      cell.innerHTML = "";
+    }
+  }
+  initPieceTo(Piece.BLACK_ROOK, [0, 0]);
+  initPieceTo(Piece.BLACK_ROOK, [7, 0]);
+
+  initPieceTo(Piece.BLACK_KNIGHT, [1, 0]);
+  initPieceTo(Piece.BLACK_KNIGHT, [6, 0]);
+
+  initPieceTo(Piece.BLACK_BISHOP, [2, 0]);
+  initPieceTo(Piece.BLACK_BISHOP, [5, 0]);
+
+  initPieceTo(Piece.BLACK_QUEEN, [3, 0]);
+  initPieceTo(Piece.BLACK_KING, [4, 0]);
+
+  for (let i: number = 0 ; i < GRID_SIDE ; i++) {
+    initPieceTo(Piece.BLACK_PAWN, [i, 1]);
+  }
+
+  initPieceTo(Piece.WHITE_ROOK, [0, 7]);
+  initPieceTo(Piece.WHITE_ROOK, [7, 7]);
+
+  initPieceTo(Piece.WHITE_KNIGHT, [1, 7]);
+  initPieceTo(Piece.WHITE_KNIGHT, [6, 7]);
+
+  initPieceTo(Piece.WHITE_BISHOP, [2, 7]);
+  initPieceTo(Piece.WHITE_BISHOP, [5, 7]);
+
+  initPieceTo(Piece.WHITE_QUEEN, [3, 7]);
+  initPieceTo(Piece.WHITE_KING, [4, 7]);
+
+  for (let i: number = 0 ; i < GRID_SIDE ; i++) {
+    initPieceTo(Piece.WHITE_PAWN, [i, 6]);
+  }
+
+}
+
 function convertCoordsToId(coords: number[]): string {
   return `${coords[0]},${coords[1]}`;
 }
@@ -96,5 +138,12 @@ function getHTMLPieceAt(coords: number[]): HTMLParagraphElement {
   return <HTMLParagraphElement>cell.firstChild;
 }
 
+function initPieceTo(piece: number, coords: number[]): void {
+  grid[coords[1]][coords[0]] = piece;
+  let HTMLpiece: HTMLParagraphElement = createHTMLPiece(piece);
+  setHTMLPieceTo(HTMLpiece, [coords[0], coords[1]]);
+}
+
 generateGrid(grid);
 generateHTMLGrid(htmlGrid);
+generateDefaultBoardState(grid, htmlGrid);
