@@ -23,9 +23,9 @@ function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
     for (let j: number = 0 ; j < GRID_SIDE ; j++) {
       let cell: HTMLDivElement = document.createElement("div");
       if ((i+j) % 2 == 0) {
-        cell.classList.add(BLACK_CELL_CLASS);
-      } else {
         cell.classList.add(WHITE_CELL_CLASS);
+      } else {
+        cell.classList.add(BLACK_CELL_CLASS);
       }
       cell.classList.add(CELL_CLASS);
       row.appendChild(cell);
