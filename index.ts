@@ -1,6 +1,7 @@
 const GRID_SIDE: number = 8;
 const BLACK_CELL_CLASS: string = "blackCell";
 const WHITE_CELL_CLASS: string = "whiteCell";
+const LIT_CELL_CLASS: string = "litCell";
 const CELL_CLASS: string = "cell";
 const ROW_CLASS: string = "row";
 const PIECE_CLASS: string = "piece";
@@ -25,6 +26,9 @@ enum Piece {
 let htmlGrid: HTMLDivElement = <HTMLDivElement>document.getElementById("grid");
 let grid: number[][] = [];
 
+let movingCell: number[] = [];
+let currentPlayerTurn: number = 1;
+
 function generateGrid(grid: number[][]): void {
   for (let i: number = 0 ; i < GRID_SIDE ; i++) {
     grid.push([]);
@@ -47,6 +51,7 @@ function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
       }
       cell.classList.add(CELL_CLASS);
       cell.id = `${j},${i}`;
+      cell.addEventListener("click", onCellClick);
       row.appendChild(cell);
     }
     htmlGrid.appendChild(row);
@@ -100,7 +105,7 @@ function convertCoordsToId(coords: number[]): string {
 }
 
 function convertIdToCoords(id: string) {
-  return id.split(',');
+  return id.split(',').map(string => parseInt(string));
 }
 
 function getPiecePlayer(pieceType: number): number {
@@ -129,6 +134,10 @@ function setHTMLPieceTo(piece:HTMLParagraphElement, coords: number[]) {
 }
 
 function removeHTMLPieceFrom(piece:HTMLParagraphElement, coords: number[]): HTMLParagraphElement {
+  if (!piece) {
+    return;
+  }
+
   let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(convertCoordsToId(coords));
   return cell.removeChild(piece);
 }
@@ -142,6 +151,50 @@ function initPieceTo(piece: number, coords: number[]): void {
   grid[coords[1]][coords[0]] = piece;
   let HTMLpiece: HTMLParagraphElement = createHTMLPiece(piece);
   setHTMLPieceTo(HTMLpiece, [coords[0], coords[1]]);
+}
+
+function lightCell(id: string): void {
+  let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(id);
+  cell.classList.remove(BLACK_CELL_CLASS);
+  cell.classList.remove(WHITE_CELL_CLASS);
+  cell.classList.add(LIT_CELL_CLASS);
+}
+
+function unlightCell(id: string): void {
+  let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(id);
+  let coords: number[] = convertIdToCoords(id);
+  cell.classList.remove(LIT_CELL_CLASS);
+  if (coords[0] + coords[1] % 2 == 0) {
+    cell.classList.add(BLACK_CELL_CLASS);
+  } else {
+    cell.classList.add(WHITE_CELL_CLASS);
+  }
+}
+
+function onCellClick(event) {
+  if (!event.currentTarget.hasChildNodes() && !movingCell.length) {
+    return
+  }
+
+  let coords: number[] = convertIdToCoords(event.currentTarget.id);
+
+  if (!movingCell.length) {
+    let piece: number = grid[coords[1]][coords[0]];
+    if (getPiecePlayer(piece) != currentPlayerTurn) {
+      return
+    }
+    movingCell = coords;
+    // TODO: Light cases
+    lightCell(convertCoordsToId([5, 5]));
+  } else if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
+    let piece: number = grid[movingCell[0]][movingCell[1]];
+    grid[coords[0]][coords[1]] = piece;
+    removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
+    let HTMLPiece: HTMLParagraphElement = removeHTMLPieceFrom(getHTMLPieceAt(movingCell), movingCell);
+    setHTMLPieceTo(HTMLPiece, coords);
+    movingCell = [];
+    unlightCell(convertCoordsToId([5, 5]));
+  }
 }
 
 generateGrid(grid);
