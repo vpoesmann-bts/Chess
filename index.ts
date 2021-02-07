@@ -283,9 +283,6 @@ function onCellClick(event) {
       tryPromotion(movingPiece, coords);
 
       changeTurn();
-      if (isKingCheckMate(currentPlayerTurn)) {
-        // TODO: Victoire joueur
-      }
     }
     unlightAllCells();
     movingCell = [];
@@ -385,10 +382,6 @@ function getQueenMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
-}
-
-function isKingCheckMate(player: number) : boolean {
-  return false;
 }
 
 generateGrid(grid);
