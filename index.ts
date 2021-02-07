@@ -1,4 +1,6 @@
 const GRID_SIDE: number = 8;
+const WHITE_PAWN_START_Y: number = 6;
+const BLACK_PAWN_START_Y: number = 1;
 const BLACK_CELL_CLASS: string = "blackCell";
 const WHITE_CELL_CLASS: string = "whiteCell";
 const LIT_CELL_CLASS: string = "litCell";
@@ -7,6 +9,15 @@ const ROW_CLASS: string = "row";
 const PIECE_CLASS: string = "piece";
 const CHESS_PIECES_CHARS: string[] = [, "K", "Q", "R", "N", "B", "P"];
 const PIECE_COLOR_CLASS: string[] = [, "whitePiece", "blackPiece"];
+const LIGHT_PIECES_FC = [
+  getBlackPawnMovementCells,
+  getKingMovementCells,
+  getQueenMovementCells,
+  getRookMovementCells,
+  getKnightMovementCells,
+  getBishopMovementCells,
+  getWhitePawnMovementCells
+];
 
 enum Piece {
   BLACK_PAWN = -6,
@@ -15,12 +26,14 @@ enum Piece {
   BLACK_ROOK,
   BLACK_QUEEN,
   BLACK_KING,
-  WHITE_KING = 1,
+  NO_PIECE,
+  WHITE_KING,
   WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_KNIGHT,
   WHITE_BISHOP,
-  WHITE_PAWN
+  WHITE_PAWN,
+  VOID = null
 }
 
 let htmlGrid: HTMLDivElement = <HTMLDivElement>document.getElementById("grid");
@@ -108,6 +121,10 @@ function convertIdToCoords(id: string) {
   return id.split(',').map(string => parseInt(string));
 }
 
+function isInBounds(coords: number[]): boolean {
+  return coords[0] >= 0 && coords[0] < GRID_SIDE && coords[1] >= 0 && coords[1] < GRID_SIDE;
+}
+
 function getPiecePlayer(pieceType: number): number {
   if (pieceType > 0) {
     return 1;
@@ -119,6 +136,14 @@ function getPiecePlayer(pieceType: number): number {
 
 function getPieceColor(pieceType: number): string {
   return PIECE_COLOR_CLASS[getPiecePlayer(pieceType)];
+}
+
+function getPieceAt(coords: number[]): number {
+  if (isInBounds(coords)) {
+    return grid[coords[1]][coords[0]];
+  } else {
+    return Piece.VOID;
+  }
 }
 
 function createHTMLPiece(pieceType: number): HTMLParagraphElement {
@@ -157,7 +182,9 @@ function initPieceTo(piece: number, coords: number[]): void {
 
 function lightCells(coords: number[][]): void {
   for (let i: number = 0 ; i < coords.length ; i++) {
-    lightCell(coords[i]);
+    if (isInBounds(coords[i])) {
+      lightCell(coords[i]);
+    }
   }
 }
 
@@ -166,6 +193,17 @@ function lightCell(coords: number[]): void {
   cell.classList.remove(BLACK_CELL_CLASS);
   cell.classList.remove(WHITE_CELL_CLASS);
   cell.classList.add(LIT_CELL_CLASS);
+}
+
+function lightCellsPiece(piece: number, coords: number[]): void {
+  let movementFcIndex: number = 0;
+
+  if (piece != Piece.BLACK_PAWN) {
+    movementFcIndex = Math.abs(piece);
+  }
+
+  let cellsToLight: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords);
+  lightCells(cellsToLight);
 }
 
 function unlightAllCells(): void {
@@ -204,7 +242,7 @@ function onCellClick(event) {
       unlightAllCells();
     }
     movingCell = coords;
-    lightCell([coords[0], 4]);
+    lightCellsPiece(piece, coords);
   } else {
     if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
       grid[coords[1]][coords[0]] = grid[movingCell[1]][movingCell[0]];
@@ -217,6 +255,86 @@ function onCellClick(event) {
     unlightAllCells();
     movingCell = [];
   }
+}
+
+function getWhitePawnMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  if (getPieceAt([coords[0], coords[1] - 1]) == Piece.NO_PIECE) {
+    result.push([coords[0], coords[1] - 1]);
+  }
+
+  if (coords[1] == WHITE_PAWN_START_Y) {
+    if (getPieceAt([coords[0], coords[1] - 2]) == Piece.NO_PIECE) {
+      result.push([coords[0], coords[1] - 2]);
+    }
+  }
+
+  for (let i: number = -1 ; i < 2 ; i += 2) {
+    let diagonalCoords: number[] = [coords[0] + i, coords[1] - 1];
+    let pieceAtDiagonalCoords: number = getPieceAt(diagonalCoords);
+
+    if (pieceAtDiagonalCoords != Piece.NO_PIECE && getPiecePlayer(pieceAtDiagonalCoords) != currentPlayerTurn) {
+      result.push(diagonalCoords);
+    }
+  }
+
+  return result;
+}
+
+function getBlackPawnMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  if (getPieceAt([coords[0], coords[1] + 1]) == Piece.NO_PIECE) {
+    result.push([coords[0], coords[1] + 1]);
+  }
+
+  if (coords[1] == BLACK_PAWN_START_Y) {
+    if (getPieceAt([coords[0], coords[1] + 2]) == Piece.NO_PIECE) {
+      result.push([coords[0], coords[1] + 2]);
+    }
+  }
+
+  for (let i: number = -1 ; i < 2 ; i += 2) {
+    let diagonalCoords: number[] = [coords[0] + i, coords[1] + 1];
+    let pieceAtDiagonalCoords: number = getPieceAt(diagonalCoords);
+
+    if (pieceAtDiagonalCoords != Piece.NO_PIECE && getPiecePlayer(pieceAtDiagonalCoords) != currentPlayerTurn) {
+      result.push(diagonalCoords);
+    }
+  }
+
+  return result;
+}
+
+function getKnightMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
+function getKingMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
+function getRookMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
+function getBishopMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
+function getQueenMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
 }
 
 generateGrid(grid);
