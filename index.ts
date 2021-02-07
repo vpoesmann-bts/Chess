@@ -254,11 +254,6 @@ function changeTurn() {
 
 function onCellClick(event) {
   if (!event.currentTarget.hasChildNodes() && !movingCell.length) {
-    let all: number[][] = getAllPlayerPiecesWithCoords(currentPlayerTurn);
-    all.forEach(pair => {
-      lightCellsPiece(pair[2], [pair[0], pair[1]]);
-    });
-
     return
   }
 
