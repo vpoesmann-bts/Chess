@@ -1,6 +1,10 @@
 const GRID_SIDE: number = 8;
 const WHITE_PAWN_START_Y: number = 6;
 const BLACK_PAWN_START_Y: number = 1;
+const WHITE_PROMOTION_ROW: number = 0;
+const BLACK_PROMOTION_ROW: number = 7;
+const WHITE_PLAYER: number = 1;
+const BLACK_PLAYER: number = 2;
 const BLACK_CELL_CLASS: string = "blackCell";
 const WHITE_CELL_CLASS: string = "whiteCell";
 const LIT_CELL_CLASS: string = "litCell";
@@ -40,7 +44,7 @@ let htmlGrid: HTMLDivElement = <HTMLDivElement>document.getElementById("grid");
 let grid: number[][] = [];
 
 let movingCell: number[] = [];
-let currentPlayerTurn: number = 1;
+let currentPlayerTurn: number = WHITE_PLAYER;
 
 function generateGrid(grid: number[][]): void {
   for (let i: number = 0 ; i < GRID_SIDE ; i++) {
@@ -241,10 +245,10 @@ function unlightAllCells(): void {
 }
 
 function changeTurn() {
-  if (currentPlayerTurn == 1 ) {
-    currentPlayerTurn = 2;
+  if (currentPlayerTurn == WHITE_PLAYER) {
+    currentPlayerTurn = BLACK_PLAYER;
   } else {
-    currentPlayerTurn = 1;
+    currentPlayerTurn = WHITE_PLAYER;
   }
 }
 
@@ -269,15 +273,37 @@ function onCellClick(event) {
     lightCellsPiece(piece, coords);
   } else {
     if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
-      grid[coords[1]][coords[0]] = grid[movingCell[1]][movingCell[0]];
+      let movingPiece: number = grid[movingCell[1]][movingCell[0]];
+      grid[coords[1]][coords[0]] = movingPiece;
       grid[movingCell[1]][movingCell[0]] = 0;
       removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
       let HTMLPiece: HTMLParagraphElement = removeHTMLPieceFrom(getHTMLPieceAt(movingCell), movingCell);
       setHTMLPieceTo(HTMLPiece, coords);
+
+      tryPromotion(movingPiece, coords);
+
       changeTurn();
+      if (isKingCheckMate(currentPlayerTurn)) {
+        // TODO: Victoire joueur
+      }
     }
     unlightAllCells();
     movingCell = [];
+  }
+}
+
+function tryPromotion(piece: number, coords: number[]): void{
+  if (piece == Piece.WHITE_PAWN && coords[1] == WHITE_PROMOTION_ROW) {
+    grid[coords[1]][coords[0]] = Piece.WHITE_QUEEN;
+    let newQueen: HTMLParagraphElement = createHTMLPiece(Piece.WHITE_QUEEN);
+    removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
+    setHTMLPieceTo(newQueen, coords);
+
+  } else if (piece == Piece.BLACK_PAWN && coords[1] == BLACK_PROMOTION_ROW) {
+    grid[coords[1]][coords[0]] = Piece.BLACK_QUEEN;
+    let newQueen: HTMLParagraphElement = createHTMLPiece(Piece.BLACK_QUEEN);
+    removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
+    setHTMLPieceTo(newQueen, coords);
   }
 }
 
