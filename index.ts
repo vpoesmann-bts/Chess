@@ -1,18 +1,24 @@
 const GRID_SIDE: number = 8;
+
 const WHITE_PAWN_START_Y: number = 6;
 const BLACK_PAWN_START_Y: number = 1;
 const WHITE_PROMOTION_ROW: number = 0;
 const BLACK_PROMOTION_ROW: number = 7;
+
 const WHITE_PLAYER: number = 1;
 const BLACK_PLAYER: number = 2;
+
 const BLACK_CELL_CLASS: string = "blackCell";
 const WHITE_CELL_CLASS: string = "whiteCell";
 const LIT_CELL_CLASS: string = "litCell";
 const CELL_CLASS: string = "cell";
 const ROW_CLASS: string = "row";
 const PIECE_CLASS: string = "piece";
-const CHESS_PIECES_CHARS: string[] = [, "K", "Q", "R", "N", "B", "P"];
 const PIECE_COLOR_CLASS: string[] = [, "whitePiece", "blackPiece"];
+
+const CHESS_PIECES_CHARS: string[] = [, "K", "Q", "R", "N", "B", "P"];
+
+// Les fonctions qui seront appelées pour récupérer les cases à allumer
 const LIGHT_PIECES_FC = [
   getBlackPawnMovementCells,
   getKingMovementCells,
@@ -23,6 +29,10 @@ const LIGHT_PIECES_FC = [
   getWhitePawnMovementCells
 ];
 
+// Chaque pièce est un entier relatif
+// Les pièces identiques noires et blanches ont la même valeur absolue
+// NO_PIECE est 0, l'absence de pièce
+// VOID est null, une case qui n'existe pas (OoB)
 enum Piece {
   BLACK_PAWN = -6,
   BLACK_BISHOP,
@@ -46,6 +56,7 @@ let grid: number[][] = [];
 let movingCell: number[] = [];
 let currentPlayerTurn: number = WHITE_PLAYER;
 
+// Génération de la grille de jeu logique
 function generateGrid(grid: number[][]): void {
   for (let i: number = 0 ; i < GRID_SIDE ; i++) {
     grid.push([]);
@@ -55,6 +66,7 @@ function generateGrid(grid: number[][]): void {
   }
 }
 
+// Génération de la grille de jeu HTML
 function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
   for (let i: number = 0 ; i < GRID_SIDE ; i++) {
     let row: HTMLDivElement = document.createElement("div");
@@ -75,6 +87,7 @@ function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
   }
 }
 
+// Placement des pièces pour un plateau de départ classique d'une partie d'échecs
 function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): void {
   for (let x: number = 0 ; x < GRID_SIDE ; x++) {
     for (let y: number = 0 ; y < GRID_SIDE ; y++) {
@@ -117,18 +130,22 @@ function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): 
 
 }
 
+// Obtenir un id de case HTML à partir de coordonnées
 function convertCoordsToId(coords: number[]): string {
   return `${coords[0]},${coords[1]}`;
 }
 
+// Obtenir des coordonnées à partir d'un id de case HTML
 function convertIdToCoords(id: string) {
   return id.split(',').map(string => parseInt(string));
 }
 
+// Vérifier si les coordonnées correspondent bien à une case du plateau
 function isInBounds(coords: number[]): boolean {
   return coords[0] >= 0 && coords[0] < GRID_SIDE && coords[1] >= 0 && coords[1] < GRID_SIDE;
 }
 
+// À partir d'une pièce logique, récupérer le joueur propriétaire de la pièce
 function getPiecePlayer(pieceType: number): number {
   if (pieceType > 0) {
     return 1;
@@ -138,10 +155,13 @@ function getPiecePlayer(pieceType: number): number {
   return 0;
 }
 
+// À partir d'une pièce logique, récupérer la classe css de la couleur de la pièce
 function getPieceColor(pieceType: number): string {
   return PIECE_COLOR_CLASS[getPiecePlayer(pieceType)];
 }
 
+// Récupérer la pièce logique aux coordonnées fournies en paramètre
+// Si les coordonnées sont hors plateau, retourne VOID
 function getPieceAt(coords: number[]): number {
   if (isInBounds(coords)) {
     return grid[coords[1]][coords[0]];
@@ -150,6 +170,8 @@ function getPieceAt(coords: number[]): number {
   }
 }
 
+// Récupère toutes les pièces logiques d'un joueur et leurs coordonnées
+// Chaque entrée est sous la forme [x, y, pièce]
 function getAllPlayerPiecesWithCoords(player: number): number[][] {
   let result: number[][] = [];
 
@@ -165,6 +187,7 @@ function getAllPlayerPiecesWithCoords(player: number): number[][] {
   return result;
 }
 
+// Crée une pièce HTML à partir d'une pièce logique
 function createHTMLPiece(pieceType: number): HTMLParagraphElement {
   let piece: HTMLParagraphElement = document.createElement("p");
   piece.classList.add(getPieceColor(pieceType));
@@ -174,11 +197,13 @@ function createHTMLPiece(pieceType: number): HTMLParagraphElement {
   return piece;
 }
 
+// Place une pièce HTML aux coordonnées fournies
 function setHTMLPieceTo(piece:HTMLParagraphElement, coords: number[]) {
   let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(convertCoordsToId(coords));
   cell.appendChild(piece);
 }
 
+// Retire une pièce HTML (si elle existe) aux coordonnées fournies
 function removeHTMLPieceFrom(piece:HTMLParagraphElement, coords: number[]): HTMLParagraphElement {
   if (!piece) {
     return;
@@ -188,17 +213,20 @@ function removeHTMLPieceFrom(piece:HTMLParagraphElement, coords: number[]): HTML
   return cell.removeChild(piece);
 }
 
+// Récupère la pièce HTML (si elle existe) aux coordonnées fournies
 function getHTMLPieceAt(coords: number[]): HTMLParagraphElement {
   let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(convertCoordsToId(coords));
   return <HTMLParagraphElement>cell.firstChild;
 }
 
+// Initialise une pièce logique et HTML aux coordonnées fournies
 function initPieceTo(piece: number, coords: number[]): void {
   grid[coords[1]][coords[0]] = piece;
   let HTMLpiece: HTMLParagraphElement = createHTMLPiece(piece);
   setHTMLPieceTo(HTMLpiece, [coords[0], coords[1]]);
 }
 
+// Allume les cellules passées en paramètre
 function lightCells(coords: number[][]): void {
   for (let i: number = 0 ; i < coords.length ; i++) {
     if (isInBounds(coords[i])) {
@@ -207,6 +235,7 @@ function lightCells(coords: number[][]): void {
   }
 }
 
+// Allume une cellule passée en paramètre
 function lightCell(coords: number[]): void {
   let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(convertCoordsToId(coords));
   cell.classList.remove(BLACK_CELL_CLASS);
@@ -214,10 +243,12 @@ function lightCell(coords: number[]): void {
   cell.classList.add(LIT_CELL_CLASS);
 }
 
+// Allume les cellules atteignables par la pièce logique passée en paramètre aux coordonnées fournies
 function lightCellsPiece (piece: number, coords: number[]): void {
   lightCells(getPieceMovementCells(piece, coords));
 }
 
+// Récupère les cellules atteignables par la pièce logique passée en paramètre aux coordonnées fournies
 function getPieceMovementCells(piece: number, coords: number[]): number[][] {
   let movementFcIndex: number = 0;
 
@@ -229,6 +260,7 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
   return result;
 }
 
+// Éteint toutes les cellules du plateau
 function unlightAllCells(): void {
   for (let i: number = 0 ; i < GRID_SIDE ; i++) {
     for (let j: number = 0 ; j < GRID_SIDE ; j++) {
@@ -244,6 +276,7 @@ function unlightAllCells(): void {
   }
 }
 
+// Change le tour de jeu
 function changeTurn() {
   if (currentPlayerTurn == WHITE_PLAYER) {
     currentPlayerTurn = BLACK_PLAYER;
@@ -252,7 +285,9 @@ function changeTurn() {
   }
 }
 
+// Callback de l'événement click sur une cellule
 function onCellClick(event) {
+  // On clique sur une case vide, rien ne se passe
   if (!event.currentTarget.hasChildNodes() && !movingCell.length) {
     return
   }
@@ -260,6 +295,9 @@ function onCellClick(event) {
   let coords: number[] = convertIdToCoords(event.currentTarget.id);
   let piece: number = grid[coords[1]][coords[0]];
 
+  // Le joueur clique sur une de ses pièces
+  // On éteint tout s'il avait déjà sélectionné une pièce
+  // On met à jour la pièce sélectionnée, et on allume les cases potentielles de mouvement
   if (getPiecePlayer(piece) == currentPlayerTurn) {
     if (movingCell.length) {
       unlightAllCells();
@@ -267,6 +305,12 @@ function onCellClick(event) {
     movingCell = coords;
     lightCellsPiece(piece, coords);
   } else {
+    // Le joueur clique sur une case potentielle de mouvement
+    // On déplace la pièce logique et HTML
+    // On écrase ce qui se trouve à l'arrivée
+    // On essaye de transformer un pion en reine si les conditions sont remplies
+    // On change le tour de jeu
+
     if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
       let movingPiece: number = grid[movingCell[1]][movingCell[0]];
       grid[coords[1]][coords[0]] = movingPiece;
@@ -279,11 +323,16 @@ function onCellClick(event) {
 
       changeTurn();
     }
+    // Qu'il ait cliqué sur un mouvement ou dans le vide
+    // On éteint tout et on retire la pièce sélectionnée
+
     unlightAllCells();
     movingCell = [];
   }
 }
 
+// Si un pion arrive au bout du chemin, il se transforme en reine
+// On change la pièce logique et HTML
 function tryPromotion(piece: number, coords: number[]): void{
   if (piece == Piece.WHITE_PAWN && coords[1] == WHITE_PROMOTION_ROW) {
     grid[coords[1]][coords[0]] = Piece.WHITE_QUEEN;
@@ -299,6 +348,7 @@ function tryPromotion(piece: number, coords: number[]): void{
   }
 }
 
+// On retourne toutes les cases accessibles à un pion blanc sur les coordonnées fournies
 function getWhitePawnMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
@@ -324,6 +374,7 @@ function getWhitePawnMovementCells(coords: number[]): number[][] {
   return result;
 }
 
+// On retourne toutes les cases accessibles à un pion noir sur les coordonnées fournies
 function getBlackPawnMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
@@ -349,36 +400,42 @@ function getBlackPawnMovementCells(coords: number[]): number[][] {
   return result;
 }
 
-function getKnightMovementCells(coords: number[]): number[][] {
-  let result: number[][] = [];
-
-  return result;
-}
-
+// On retourne toutes les cases accessibles à un roi sur les coordonnées fournies
 function getKingMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
+// On retourne toutes les cases accessibles à un cavalier sur les coordonnées fournies
+function getKnightMovementCells(coords: number[]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
+// On retourne toutes les cases accessibles à une tour sur les coordonnées fournies
 function getRookMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
+// On retourne toutes les cases accessibles à un fou sur les coordonnées fournies
 function getBishopMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
+// On retourne toutes les cases accessibles à une reine sur les coordonnées fournies
 function getQueenMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
+// Génération de grille et lancement d'une partie
 generateGrid(grid);
 generateHTMLGrid(htmlGrid);
 generateDefaultBoardState(grid, htmlGrid);
