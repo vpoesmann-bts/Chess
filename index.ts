@@ -146,6 +146,21 @@ function getPieceAt(coords: number[]): number {
   }
 }
 
+function getAllPlayerPiecesWithCoords(player: number): number[][] {
+  let result: number[][] = [];
+
+  for (let i: number = 0 ; i < GRID_SIDE ; i++) {
+    for (let j: number = 0 ; j < GRID_SIDE ; j++) {
+      let piece: number = getPieceAt([i, j]);
+      if (getPiecePlayer(piece) == player) {
+        result.push([i, j, piece]);
+      }
+    }
+  }
+
+  return result;
+}
+
 function createHTMLPiece(pieceType: number): HTMLParagraphElement {
   let piece: HTMLParagraphElement = document.createElement("p");
   piece.classList.add(getPieceColor(pieceType));
@@ -195,15 +210,19 @@ function lightCell(coords: number[]): void {
   cell.classList.add(LIT_CELL_CLASS);
 }
 
-function lightCellsPiece(piece: number, coords: number[]): void {
+function lightCellsPiece (piece: number, coords: number[]): void {
+  lightCells(getPieceMovementCells(piece, coords));
+}
+
+function getPieceMovementCells(piece: number, coords: number[]): number[][] {
   let movementFcIndex: number = 0;
 
   if (piece != Piece.BLACK_PAWN) {
     movementFcIndex = Math.abs(piece);
   }
 
-  let cellsToLight: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords);
-  lightCells(cellsToLight);
+  let result: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords);
+  return result;
 }
 
 function unlightAllCells(): void {
@@ -231,6 +250,11 @@ function changeTurn() {
 
 function onCellClick(event) {
   if (!event.currentTarget.hasChildNodes() && !movingCell.length) {
+    let all: number[][] = getAllPlayerPiecesWithCoords(currentPlayerTurn);
+    all.forEach(pair => {
+      lightCellsPiece(pair[2], [pair[0], pair[1]]);
+    });
+
     return
   }
 
@@ -335,6 +359,10 @@ function getQueenMovementCells(coords: number[]): number[][] {
   let result: number[][] = [];
 
   return result;
+}
+
+function isKingCheckMate(player: number) : boolean {
+  return false;
 }
 
 generateGrid(grid);
