@@ -111,8 +111,10 @@ function convertIdToCoords(id: string) {
 function getPiecePlayer(pieceType: number): number {
   if (pieceType > 0) {
     return 1;
+  } else if (pieceType < 0) {
+    return 2;
   }
-  return 2;
+  return 0;
 }
 
 function getPieceColor(pieceType: number): string {
@@ -153,21 +155,39 @@ function initPieceTo(piece: number, coords: number[]): void {
   setHTMLPieceTo(HTMLpiece, [coords[0], coords[1]]);
 }
 
-function lightCell(id: string): void {
-  let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(id);
+function lightCells(coords: number[][]): void {
+  for (let i: number = 0 ; i < coords.length ; i++) {
+    lightCell(coords[i]);
+  }
+}
+
+function lightCell(coords: number[]): void {
+  let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(convertCoordsToId(coords));
   cell.classList.remove(BLACK_CELL_CLASS);
   cell.classList.remove(WHITE_CELL_CLASS);
   cell.classList.add(LIT_CELL_CLASS);
 }
 
-function unlightCell(id: string): void {
-  let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(id);
-  let coords: number[] = convertIdToCoords(id);
-  cell.classList.remove(LIT_CELL_CLASS);
-  if (coords[0] + coords[1] % 2 == 0) {
-    cell.classList.add(BLACK_CELL_CLASS);
+function unlightAllCells(): void {
+  for (let i: number = 0 ; i < GRID_SIDE ; i++) {
+    for (let j: number = 0 ; j < GRID_SIDE ; j++) {
+      let cellId: string = convertCoordsToId([i, j]);
+      let cell: HTMLDivElement = <HTMLDivElement>document.getElementById(cellId);
+      cell.classList.remove(LIT_CELL_CLASS);
+      if ((i + j) % 2 == 0) {
+        cell.classList.add(WHITE_CELL_CLASS);
+      } else {
+        cell.classList.add(BLACK_CELL_CLASS);
+      }
+    }
+  }
+}
+
+function changeTurn() {
+  if (currentPlayerTurn == 1 ) {
+    currentPlayerTurn = 2;
   } else {
-    cell.classList.add(WHITE_CELL_CLASS);
+    currentPlayerTurn = 1;
   }
 }
 
@@ -177,23 +197,25 @@ function onCellClick(event) {
   }
 
   let coords: number[] = convertIdToCoords(event.currentTarget.id);
+  let piece: number = grid[coords[1]][coords[0]];
 
-  if (!movingCell.length) {
-    let piece: number = grid[coords[1]][coords[0]];
-    if (getPiecePlayer(piece) != currentPlayerTurn) {
-      return
+  if (getPiecePlayer(piece) == currentPlayerTurn) {
+    if (movingCell.length) {
+      unlightAllCells();
     }
     movingCell = coords;
-    // TODO: Light cases
-    lightCell(convertCoordsToId([5, 5]));
-  } else if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
-    let piece: number = grid[movingCell[0]][movingCell[1]];
-    grid[coords[0]][coords[1]] = piece;
-    removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
-    let HTMLPiece: HTMLParagraphElement = removeHTMLPieceFrom(getHTMLPieceAt(movingCell), movingCell);
-    setHTMLPieceTo(HTMLPiece, coords);
+    lightCell([coords[0], 4]);
+  } else {
+    if (event.currentTarget.classList.contains(LIT_CELL_CLASS)) {
+      grid[coords[1]][coords[0]] = grid[movingCell[1]][movingCell[0]];
+      grid[movingCell[1]][movingCell[0]] = 0;
+      removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
+      let HTMLPiece: HTMLParagraphElement = removeHTMLPieceFrom(getHTMLPieceAt(movingCell), movingCell);
+      setHTMLPieceTo(HTMLPiece, coords);
+      changeTurn();
+    }
+    unlightAllCells();
     movingCell = [];
-    unlightCell(convertCoordsToId([5, 5]));
   }
 }
 
