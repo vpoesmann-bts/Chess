@@ -187,6 +187,21 @@ function getAllPlayerPiecesWithCoords(player: number): number[][] {
   return result;
 }
 
+// Récupère toutes les cellules atteignables par un joueur
+// Cela compte chaque cellule atteignable par chaque pièce du joueur
+// Les doublons ne sont pas filtrés
+function getAllPlayerReachableCellsCoords(player: number): number[][] {
+  let result: number[][] = [];
+
+  let allPlayerPiecesWithCoords: number[][] = getAllPlayerPiecesWithCoords(player);
+
+  allPlayerPiecesWithCoords.forEach(pair => {
+    result.push(...getPieceMovementCells(pair[2], [pair[0], pair[1]]));
+  });
+
+  return result;
+}
+
 // Crée une pièce HTML à partir d'une pièce logique
 function createHTMLPiece(pieceType: number): HTMLParagraphElement {
   let piece: HTMLParagraphElement = document.createElement("p");
@@ -256,7 +271,7 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
     movementFcIndex = Math.abs(piece);
   }
 
-  let result: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords);
+  let result: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords, getPiecePlayer(piece));
   return result;
 }
 
@@ -277,11 +292,20 @@ function unlightAllCells(): void {
 }
 
 // Change le tour de jeu
-function changeTurn() {
+function changeTurn(): void {
   if (currentPlayerTurn == WHITE_PLAYER) {
     currentPlayerTurn = BLACK_PLAYER;
   } else {
     currentPlayerTurn = WHITE_PLAYER;
+  }
+}
+
+// Récupère le numéro du joueur dont ce n'est pas le tour de jeu
+function getOtherPlayer(player: number): number{
+  if (player == WHITE_PLAYER) {
+    return BLACK_PLAYER;
+  } else {
+    return WHITE_PLAYER;
   }
 }
 
@@ -366,7 +390,7 @@ function getWhitePawnMovementCells(coords: number[]): number[][] {
     let diagonalCoords: number[] = [coords[0] + i, coords[1] - 1];
     let pieceAtDiagonalCoords: number = getPieceAt(diagonalCoords);
 
-    if (pieceAtDiagonalCoords != Piece.NO_PIECE && getPiecePlayer(pieceAtDiagonalCoords) != currentPlayerTurn) {
+    if (getPiecePlayer(pieceAtDiagonalCoords) == BLACK_PLAYER) {
       result.push(diagonalCoords);
     }
   }
@@ -392,7 +416,7 @@ function getBlackPawnMovementCells(coords: number[]): number[][] {
     let diagonalCoords: number[] = [coords[0] + i, coords[1] + 1];
     let pieceAtDiagonalCoords: number = getPieceAt(diagonalCoords);
 
-    if (pieceAtDiagonalCoords != Piece.NO_PIECE && getPiecePlayer(pieceAtDiagonalCoords) != currentPlayerTurn) {
+    if (getPiecePlayer(pieceAtDiagonalCoords) == WHITE_PLAYER) {
       result.push(diagonalCoords);
     }
   }
@@ -401,35 +425,35 @@ function getBlackPawnMovementCells(coords: number[]): number[][] {
 }
 
 // On retourne toutes les cases accessibles à un roi sur les coordonnées fournies
-function getKingMovementCells(coords: number[]): number[][] {
+function getKingMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
 // On retourne toutes les cases accessibles à un cavalier sur les coordonnées fournies
-function getKnightMovementCells(coords: number[]): number[][] {
+function getKnightMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
 // On retourne toutes les cases accessibles à une tour sur les coordonnées fournies
-function getRookMovementCells(coords: number[]): number[][] {
+function getRookMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
 // On retourne toutes les cases accessibles à un fou sur les coordonnées fournies
-function getBishopMovementCells(coords: number[]): number[][] {
+function getBishopMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
   return result;
 }
 
 // On retourne toutes les cases accessibles à une reine sur les coordonnées fournies
-function getQueenMovementCells(coords: number[]): number[][] {
+function getQueenMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
   return result;
