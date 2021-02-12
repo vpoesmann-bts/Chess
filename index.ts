@@ -459,6 +459,12 @@ function getQueenMovementCells(coords: number[], player: number): number[][] {
   return result;
 }
 
+function getUncheckedKingMovementCells(coords: number[], player: number, checkedCells: number[][]): number[][] {
+  let result: number[][] = [];
+
+  return result;
+}
+
 // Génération de grille et lancement d'une partie
 generateGrid(grid);
 generateHTMLGrid(htmlGrid);
