@@ -34,7 +34,8 @@ const LIGHT_PIECES_FC = [
 // NO_PIECE est 0, l'absence de pièce
 // VOID est null, une case qui n'existe pas (OoB)
 enum Piece {
-  BLACK_PAWN = -6,
+  BLACK_KING_UNCHECKED = -7,
+  BLACK_PAWN,
   BLACK_BISHOP,
   BLACK_KNIGHT,
   BLACK_ROOK,
@@ -47,6 +48,7 @@ enum Piece {
   WHITE_KNIGHT,
   WHITE_BISHOP,
   WHITE_PAWN,
+  WHITE_KING_UNCHECKED,
   VOID = null
 }
 
@@ -271,7 +273,14 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
     movementFcIndex = Math.abs(piece);
   }
 
-  let result: number[][] = LIGHT_PIECES_FC[movementFcIndex](coords, getPiecePlayer(piece));
+  let result: number[][];
+
+  if (movementFcIndex == Piece.WHITE_KING_UNCHECKED) {
+    result = getUncheckedKingMovementCells(coords, getPiecePlayer(piece), getAllPlayerReachableCellsCoords(getOtherPlayer(currentPlayerTurn)));
+  } else {
+    result = LIGHT_PIECES_FC[movementFcIndex](coords, getPiecePlayer(piece));
+  }
+
   return result;
 }
 
@@ -327,6 +336,11 @@ function onCellClick(event) {
       unlightAllCells();
     }
     movingCell = coords;
+    // Convertit le roi en roi unchecked
+    // Afin de n'afficher que les déplacements légaux du roi
+    if (Math.abs(piece) == Piece.WHITE_KING) {
+      piece *= Piece.WHITE_KING_UNCHECKED;
+    }
     lightCellsPiece(piece, coords);
   } else {
     // Le joueur clique sur une case potentielle de mouvement
@@ -425,6 +439,7 @@ function getBlackPawnMovementCells(coords: number[]): number[][] {
 }
 
 // On retourne toutes les cases accessibles à un roi sur les coordonnées fournies
+// Nous ne prenons pas en compte l'échec éventuel du roi dans nos déplacements
 function getKingMovementCells(coords: number[], player: number): number[][] {
   let result: number[][] = [];
 
@@ -459,6 +474,8 @@ function getQueenMovementCells(coords: number[], player: number): number[][] {
   return result;
 }
 
+// On retourne toutes les cases accessibles à un roi sur les coordonnées fournies
+// Nous filtrons ici les cases où le roi serait en échec
 function getUncheckedKingMovementCells(coords: number[], player: number, checkedCells: number[][]): number[][] {
   let result: number[][] = [];
 
