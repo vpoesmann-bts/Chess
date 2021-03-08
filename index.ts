@@ -268,6 +268,7 @@ function lightCellsPiece (piece: number, coords: number[]): void {
 // Récupère les cellules atteignables par la pièce logique passée en paramètre aux coordonnées fournies
 function getPieceMovementCells(piece: number, coords: number[]): number[][] {
   let movementFcIndex: number = 0;
+  let player: number = getPiecePlayer(piece);
 
   if (piece != Piece.BLACK_PAWN) {
     movementFcIndex = Math.abs(piece);
@@ -277,7 +278,7 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
 
   // Cas particulier du déplacement du roi qui ne peut pas se déplacer sur une cellule checked
   if (movementFcIndex == Piece.WHITE_KING_UNCHECKED) {
-    result = getUncheckedKingMovementCells(coords, getPiecePlayer(piece), getAllPlayerReachableCellsCoords(getOtherPlayer(currentPlayerTurn)));
+    result = getUncheckedKingMovementCells(coords, getPiecePlayer(piece), getAllPlayerReachableCellsCoords(getOtherPlayer(player)));
   } else {
     result = LIGHT_PIECES_FC[movementFcIndex](coords, getPiecePlayer(piece));
   }
@@ -288,6 +289,7 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
 // Récupère les cellules capturables par la pièce logique (ne sert que pour la simulation d'échec)
 function getCheckPieceMovementCells(piece: number, coords: number[]): number[][] {
   let movementFcIndex: number = 0;
+  let player: number = getPiecePlayer(piece);
 
   if (piece != Piece.BLACK_PAWN) {
     movementFcIndex = Math.abs(piece);
@@ -296,7 +298,7 @@ function getCheckPieceMovementCells(piece: number, coords: number[]): number[][]
   let result: number[][];
 
   if (Math.abs(piece) == Piece.WHITE_PAWN) {
-    result = getCheckPawnMovementCells(coords, currentPlayerTurn);
+    result = getCheckPawnMovementCells(coords, player);
   } else {
     result = getPieceMovementCells(piece, coords);
   }
