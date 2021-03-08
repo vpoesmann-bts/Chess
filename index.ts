@@ -89,8 +89,8 @@ function generateHTMLGrid(htmlGrid:HTMLDivElement): void {
   }
 }
 
-// Placement des pièces pour un plateau de départ classique d'une partie d'échecs
-function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): void {
+// Reset du plateau de jeu logique et HTML à 0
+function clearBoardState(grid: number[][]): void {
   for (let x: number = 0 ; x < GRID_SIDE ; x++) {
     for (let y: number = 0 ; y < GRID_SIDE ; y++) {
       grid[y][x] = 0;
@@ -98,6 +98,12 @@ function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): 
       cell.innerHTML = "";
     }
   }
+}
+
+// Placement des pièces pour un plateau de départ classique d'une partie d'échecs
+function generateDefaultBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
   initPieceTo(Piece.BLACK_ROOK, [0, 0]);
   initPieceTo(Piece.BLACK_ROOK, [7, 0]);
 
@@ -132,6 +138,63 @@ function generateDefaultBoardState(grid: number[][], htmlGrid: HTMLDivElement): 
 
 }
 
+// Placement de pièces pour vérifier les mouvements du Roi
+function generateKingTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_KING, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [5, 4]);
+  initPieceTo(Piece.BLACK_PAWN, [3, 3]);
+}
+
+// Placement de pièces pour vérifier les mouvements du Cavalier
+function generateKnightTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_KNIGHT, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [6, 3]);
+  initPieceTo(Piece.BLACK_PAWN, [3, 6]);
+  initPieceTo(Piece.BLACK_PAWN, [4, 5]);
+  initPieceTo(Piece.BLACK_PAWN, [3, 5]);
+}
+
+// Placement de pièces pour vérifier les mouvements de la Tour
+function generateRookTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_ROOK, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [1, 4]);
+  initPieceTo(Piece.BLACK_PAWN, [4, 2]);
+}
+
+// Placement de pièces pour vérifier les mouvements du Fou
+function generateBishopTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_BISHOP, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [2, 2]);
+  initPieceTo(Piece.BLACK_PAWN, [5, 3]);
+}
+
+// Placement de pièces pour vérifier les mouvements de la Reine
+function generateQueenTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_QUEEN, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [2, 2]);
+  initPieceTo(Piece.BLACK_PAWN, [5, 3]);
+  initPieceTo(Piece.WHITE_PAWN, [1, 4]);
+  initPieceTo(Piece.BLACK_PAWN, [4, 2]);
+}
+
+// Placement de pièces pour vérifier les mouvements du Roi avec prise en compte de l'échec
+function generateUncheckedKingTestBoardState(grid: number[][]): void {
+  clearBoardState(grid);
+
+  initPieceTo(Piece.WHITE_KING, [4, 4]);
+  initPieceTo(Piece.WHITE_PAWN, [5, 4]);
+  initPieceTo(Piece.BLACK_ROOK, [3, 1]);
+}
 // Obtenir un id de case HTML à partir de coordonnées
 function convertCoordsToId(coords: number[]): string {
   return `${coords[0]},${coords[1]}`;
@@ -522,4 +585,4 @@ function getUncheckedKingMovementCells(coords: number[], player: number, checked
 // Génération de grille et lancement d'une partie
 generateGrid(grid);
 generateHTMLGrid(htmlGrid);
-generateDefaultBoardState(grid, htmlGrid);
+generateDefaultBoardState(grid);
