@@ -198,7 +198,7 @@ function getAllPlayerReachableCellsCoords(player: number): number[][] {
   let allPlayerPiecesWithCoords: number[][] = getAllPlayerPiecesWithCoords(player);
 
   allPlayerPiecesWithCoords.forEach(pair => {
-    result.push(...getPieceMovementCells(pair[2], [pair[0], pair[1]]));
+    result.push(...getCheckPieceMovementCells(pair[2], [pair[0], pair[1]]));
   });
 
   return result;
@@ -275,10 +275,30 @@ function getPieceMovementCells(piece: number, coords: number[]): number[][] {
 
   let result: number[][];
 
+  // Cas particulier du déplacement du roi qui ne peut pas se déplacer sur une cellule checked
   if (movementFcIndex == Piece.WHITE_KING_UNCHECKED) {
     result = getUncheckedKingMovementCells(coords, getPiecePlayer(piece), getAllPlayerReachableCellsCoords(getOtherPlayer(currentPlayerTurn)));
   } else {
     result = LIGHT_PIECES_FC[movementFcIndex](coords, getPiecePlayer(piece));
+  }
+
+  return result;
+}
+
+// Récupère les cellules capturables par la pièce logique (ne sert que pour la simulation d'échec)
+function getCheckPieceMovementCells(piece: number, coords: number[]): number[][] {
+  let movementFcIndex: number = 0;
+
+  if (piece != Piece.BLACK_PAWN) {
+    movementFcIndex = Math.abs(piece);
+  }
+
+  let result: number[][];
+
+  if (Math.abs(piece) == Piece.WHITE_PAWN) {
+    result = getCheckPawnMovementCells(coords, currentPlayerTurn);
+  } else {
+    result = getPieceMovementCells(piece, coords);
   }
 
   return result;
@@ -384,6 +404,21 @@ function tryPromotion(piece: number, coords: number[]): void{
     removeHTMLPieceFrom(getHTMLPieceAt(coords), coords);
     setHTMLPieceTo(newQueen, coords);
   }
+}
+
+// On retourne uniquement les cases où le pion peut théoriquement prendre une pièce
+// Uniquement utilisé dans la vérification d'échec
+function getCheckPawnMovementCells(coords: number[], player: number): number[][] {
+  let result: number[][] = [];
+
+  let playerDirection = player - getOtherPlayer(player);
+  for (let i: number = -1 ; i < 2 ; i+= 2) {
+    if (getPieceAt([coords[0] + i, coords[1] + playerDirection]) != Piece.VOID) {
+      result.push([coords[0] + i, coords[1] + playerDirection]);
+    }
+  }
+
+  return result;
 }
 
 // On retourne toutes les cases accessibles à un pion blanc sur les coordonnées fournies
