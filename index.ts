@@ -579,6 +579,8 @@ function getQueenMovementCells(coords: number[], player: number): number[][] {
 function getUncheckedKingMovementCells(coords: number[], player: number, checkedCells: number[][]): number[][] {
   let result: number[][] = [];
 
+  result = getKingMovementCells(coords, player);
+
   return result;
 }
 
